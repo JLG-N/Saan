@@ -30,8 +30,12 @@ CREATE TABLE IF NOT EXISTS plans (
   title      TEXT NOT NULL,
   user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  status     TEXT NOT NULL DEFAULT 'draft'
+  status     TEXT NOT NULL DEFAULT 'draft',
+  share_token TEXT UNIQUE 
 );
+
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS share_token TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_plans_share_token ON plans(share_token) WHERE share_token IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS plan_spots (
   id          TEXT PRIMARY KEY,
