@@ -51,4 +51,9 @@ export const api = {
     apiFetch(`/plans/${planId}/spots/${spotId}`, { method: "DELETE", token }),
   reorderPlan: (planId, spotIds, token) =>
     apiFetch(`/plans/${planId}/reorder`, { method: "PUT", token, body: { spotIds } }),
+
+  // Sharing: owner turns a link on/off (needs token); anyone can read a shared plan (no token).
+  sharePlan: (planId, token) => apiFetch(`/plans/${planId}/share`, { method: "POST", token }),
+  unsharePlan: (planId, token) => apiFetch(`/plans/${planId}/share`, { method: "DELETE", token }),
+  sharedPlan: (shareToken) => apiFetch(`/shared/${encodeURIComponent(shareToken)}`),
 };
