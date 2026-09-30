@@ -6,12 +6,16 @@ export function SpotCard({ spot, onClick, favorited, onToggleFavorite }) {
       <div className="sn-spot-media">
         <div className="sn-placeholder-img">image</div>
         {onToggleFavorite && (
-          <span
+          <button
+            type="button"
             className="sn-spot-fav"
+            aria-label={favorited ? `Remove ${spot.name} from saved spots` : `Save ${spot.name}`}
+            aria-pressed={favorited}
+            title={favorited ? "Remove from saved spots" : "Save spot"}
             onClick={(e) => { e.stopPropagation(); onToggleFavorite(spot.id); }}
           >
             {favorited ? "♥" : "♡"}
-          </span>
+          </button>
         )}
       </div>
       <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, marginTop: "var(--space-2)", marginBottom: "var(--space-1)" }}>{spot.name}</div>

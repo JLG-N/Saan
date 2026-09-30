@@ -72,22 +72,20 @@ function AppInner() {
     setFavorites((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]));
   };
 
-  // Add to plan from Spot Detail: create a plan on the server if none is
-  // "in progress" yet, then attach this spot to it and jump into the builder.
-  const addToPlan = async (spotId) => {
+  const addToPlan = async (spotId, targetPlanId) => {
     setAddBusy(true);
-    setApiError("");
     try {
-      let planId = selectedPlanId;
-      if (view !== "planBuilder" || !planId) {
+      let planId = targetPlanId;
+      if (planId === "__new__") {
         const created = await api.createPlan("New Plan", token);
         planId = created.plan.id;
       }
+      if (!planId) throw new Error("Choose a plan first.");
       await api.addSpotToPlan(planId, spotId, token);
       setSelectedPlanId(planId);
       setView("planBuilder");
     } catch (err) {
-      setApiError(err.message);
+      throw err;
     } finally {
       setAddBusy(false);
     }
@@ -114,7 +112,7 @@ function AppInner() {
   else if (view === "discover")
     screen = <DiscoverScreen token={token} user={user} goTo={goTo} openSpot={openSpot} favorites={favorites} toggleFavorite={toggleFavorite} />;
   else if (view === "spotDetail")
-    screen = <SpotDetailScreen spotId={selectedSpotId} token={token} goTo={goTo} addToPlan={addToPlan} addBusy={addBusy} />;
+    screen = <SpotDetailScreen spotId={selectedSpotId} token={token} user={user} goTo={goTo} addToPlan={addToPlan} addBusy={addBusy} />;
   else if (view === "myPlans")
     screen = <MyPlansScreen token={token} user={user} goTo={goTo} viewPlan={viewPlan} startNewPlan={startNewPlan} />;
   else if (view === "planBuilder")
@@ -122,12 +120,12 @@ function AppInner() {
   else if (view === "planDetail")
     screen = <PlanDetailScreen planId={selectedPlanId} token={token} goTo={goTo} />;
   else if (view === "profile")
-    screen = <ProfileScreen user={user} goTo={goTo} onSignOut={handleSignOut} favorites={favorites} />;
+    screen = <ProfileScreen user={user} goTo={goTo} onSignOut={handleSignOut} favorites={favorites} toggleFavorite={toggleFavorite} />;
 
   return (
     <div className="saan-root">
       <Styles />
-      <div className="sn-shell">{screen}</div>
+      <div className={`sn-shell${view === "login" ? " sn-shell-auth" : ""}`}>{screen}</div>
     </div>
   );
 }

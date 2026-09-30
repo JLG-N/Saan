@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { api } from "../api/api";
 import { NavBar, SpotCard, Button } from "../components";
 
-export function ProfileScreen({ user, goTo, onSignOut, favorites }) {
+export function ProfileScreen({ user, goTo, onSignOut, favorites, toggleFavorite }) {
   const [favSpots, setFavSpots] = useState([]);
+  const [section, setSection] = useState("profile");
 
   useEffect(() => {
     let cancelled = false;
@@ -17,28 +18,67 @@ export function ProfileScreen({ user, goTo, onSignOut, favorites }) {
     <div>
       <NavBar view="profile" goTo={goTo} user={user} />
       <div className="sn-layout-2col">
-        <div className="sn-sidebar">
+        <nav className="sn-sidebar" aria-label="Profile sections">
           <div className="sn-placeholder-img" style={{ height: 80, marginBottom: "var(--space-2)" }}>avatar</div>
-          <div className="sn-box filled">Profile</div>
-          <div className="sn-box">Saved spots</div>
-          <div className="sn-box">Account settings</div>
+          {[
+            { id: "profile", label: "Profile" },
+            { id: "saved", label: "Saved spots" },
+            { id: "settings", label: "Account settings" },
+          ].map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`sn-box ${section === item.id ? "active" : ""}`}
+              aria-current={section === item.id ? "page" : undefined}
+              onClick={() => setSection(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
           <Button variant="secondary" block onClick={onSignOut}>Sign out</Button>
-        </div>
-        <div>
-          <div className="sn-label">Display name</div>
-          <div className="sn-box" style={{ marginBottom: "var(--space-3)", display: "inline-block" }}>{user?.name}</div>
-          <div className="sn-dim" style={{ fontSize: "var(--font-sm)", marginBottom: "var(--space-3)" }}>{user?.email}</div>
-          <div className="sn-label">Saved spots ({favSpots.length})</div>
-          {favSpots.length === 0 ? (
-            <div className="sn-dim">Tap the star on any spot in Discover to save it here. (Favorites are kept in this browser session only — there's no favorites table in the schema yet.)</div>
-          ) : (
-            <div className="sn-card-grid">
-              {favSpots.map((s) => (
-                <SpotCard key={s.id} spot={s} onClick={() => {}} />
-              ))}
-            </div>
+        </nav>
+        <section aria-live="polite">
+          {section === "profile" && (
+            <>
+              <h1 className="sn-h1">Profile</h1>
+              <div className="sn-label" style={{ marginTop: "var(--space-6)" }}>Display name</div>
+              <div className="sn-box" style={{ marginBottom: "var(--space-3)", display: "inline-block" }}>{user?.name}</div>
+              <div className="sn-label">Email</div>
+              <div className="sn-dim">{user?.email}</div>
+            </>
           )}
-        </div>
+
+          {section === "saved" && (
+            <>
+              <h1 className="sn-h1">Saved spots</h1>
+              <div className="sn-label" style={{ marginTop: "var(--space-6)" }}>Saved spots ({favSpots.length})</div>
+              {favSpots.length === 0 ? (
+                <div className="sn-dim">Tap the star on any spot in Discover to save it here.</div>
+              ) : (
+                <div className="sn-card-grid">
+                  {favSpots.map((spot) => (
+                    <SpotCard
+                      key={spot.id}
+                      spot={spot}
+                      onClick={() => goTo("spotDetail", spot.id)}
+                      favorited
+                      onToggleFavorite={toggleFavorite}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {section === "settings" && (
+            <>
+              <h1 className="sn-h1">Account settings</h1>
+              <h2 className="sn-h2" style={{ marginTop: "var(--space-6)" }}>Account details</h2>
+              <div className="sn-list-row"><span>Display name</span><span>{user?.name}</span></div>
+              <div className="sn-list-row" style={{ marginTop: "var(--space-2)" }}><span>Email</span><span>{user?.email}</span></div>
+            </>
+          )}
+        </section>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@
    Change API_BASE if it runs somewhere else.
    ============================================================ */
 
-const API_BASE = "http://localhost:3001/api";
+const API_BASE = `${import.meta.env.VITE_API_BASE || ""}/api`;
 
 async function apiFetch(path, { method = "GET", token, body } = {}) {
   const headers = { "Content-Type": "application/json" };
@@ -40,6 +40,8 @@ export const api = {
     return apiFetch(`/spots${suffix}`);
   },
   spot: (id) => apiFetch(`/spots/${id}`),
+  createReview: (spotId, rating, comment, token) =>
+    apiFetch(`/spots/${spotId}/reviews`, { method: "POST", token, body: { rating, comment } }),
 
   plans: (token) => apiFetch("/plans", { token }),
   plan: (id, token) => apiFetch(`/plans/${id}`, { token }),

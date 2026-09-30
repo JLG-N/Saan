@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const bcrypt = require("bcryptjs");
 const db = require("./db");
 
@@ -35,7 +37,7 @@ async function seed() {
   const demoId = "user_demo";
   await db.query(
     "INSERT INTO users (id, email, password_hash, name) VALUES ($1, $2, $3, $4)",
-    [demoId, "demo@saan.app", bcrypt.hashSync("password123", 10), "Jane Doe"]
+    [demoId, "demo@saan.app", bcrypt.hashSync("password123", 10), "Gab"]
   );
 
   const demoPlanId = "plan_demo1";
