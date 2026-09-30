@@ -60,6 +60,15 @@ Spots are public (no login needed to browse). Plans and posting a review require
 | POST | `/api/plans/:id/spots` | `{ spotId }` | Appends a spot to the end of the itinerary |
 | DELETE | `/api/plans/:id/spots/:spotId` | — | Removes a spot from the plan |
 | PUT | `/api/plans/:id/reorder` | `{ spotIds: [...] }` | Full ordered list — sets everyone's order_index at once |
+| POST | `/api/plans/:id/share` | — | Turns on link sharing, returns `{ shareToken }`. Plan must have at least one spot. Idempotent |
+| DELETE | `/api/plans/:id/share` | — | Turns sharing off; the old link 404s immediately |
+
+### Shared plans (public — no token needed)
+| Method | Route | Notes |
+|---|---|---|
+| GET | `/api/shared/:token` | Read-only view: plan title, owner's first name, ordered spots. 404 if the token is unknown or revoked |
+
+Share links look like `http://localhost:5173/p/<token>`. **Upgrading an existing database:** re-run `schema.sql` in the Supabase SQL Editor — it adds the `share_token` column with `ADD COLUMN IF NOT EXISTS`.
 
 A plan's `status` is computed automatically: `draft` with zero spots, `ready` with one or more.
 
