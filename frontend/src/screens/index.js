@@ -5,3 +5,4 @@ export { MyPlansScreen } from "./MyPlansScreen";
 export { PlanBuilderScreen } from "./PlanBuilderScreen";
 export { PlanDetailScreen } from "./PlanDetailScreen";
 export { ProfileScreen } from "./ProfileScreen";
+export { SharedPlanScreen } from "./SharedPlanScreen";
