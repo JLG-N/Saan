@@ -162,6 +162,48 @@ router.delete("/:id/spots/:spotId", async (req, res, next) => {
   }
 });
 
+// POST /api/plans/:id/share — turn on link sharing (idempotent: reuses the existing token)
+router.post("/:id/share", async (req, res, next) => {
+  try {
+    const { rows } = await db.query("SELECT * FROM plans WHERE id = $1", [req.params.id]);
+    const plan = rows[0];
+    if (!plan || plan.user_id !== req.userId) {
+      return res.status(404).json({ error: "Plan not found." });
+    }
+    if (plan.status !== "ready") {
+      return res.status(400).json({ error: "Add at least one spot before sharing this plan." });
+    }
+    if (plan.share_token) return res.json({ shareToken: plan.share_token });
+
+    const token = crypto.randomBytes(16).toString("base64url"); // 128 bits, unguessable
+    // Only set it if still null, so two racing requests can't hand out different tokens.
+    const { rows: updated } = await db.query(
+      "UPDATE plans SET share_token = $1 WHERE id = $2 AND share_token IS NULL RETURNING share_token",
+      [token, req.params.id]
+    );
+    if (updated[0]) return res.json({ shareToken: updated[0].share_token });
+    const { rows: again } = await db.query("SELECT share_token FROM plans WHERE id = $1", [req.params.id]);
+    res.json({ shareToken: again[0].share_token });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/plans/:id/share — turn sharing off; the old link stops working immediately
+router.delete("/:id/share", async (req, res, next) => {
+  try {
+    const { rows } = await db.query("SELECT * FROM plans WHERE id = $1", [req.params.id]);
+    const plan = rows[0];
+    if (!plan || plan.user_id !== req.userId) {
+      return res.status(404).json({ error: "Plan not found." });
+    }
+    await db.query("UPDATE plans SET share_token = NULL WHERE id = $1", [req.params.id]);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
 // PUT /api/plans/:id/reorder { spotIds: [...] } — full ordered list, in the order they should appear
 router.put("/:id/reorder", async (req, res, next) => {
   const client = await db.connect();
