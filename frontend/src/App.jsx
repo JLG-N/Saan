@@ -9,9 +9,30 @@ import {
   PlanBuilderScreen,
   PlanDetailScreen,
   ProfileScreen,
+  SharedPlanScreen,
 } from "./screens";
 
+// Public share links look like /p/<token>. Handled before login so a friend
+// without an account can open them.
+function getShareTokenFromUrl() {
+  const m = window.location.pathname.match(/^\/p\/([A-Za-z0-9_-]+)\/?$/);
+  return m ? m[1] : null;
+}
+
 export default function App() {
+  const shareToken = getShareTokenFromUrl();
+  if (shareToken) {
+    return (
+      <div className="saan-root">
+        <Styles />
+        <div className="sn-shell"><SharedPlanScreen shareToken={shareToken} /></div>
+      </div>
+    );
+  }
+  return <AppInner />;
+}
+
+function AppInner() {
   const [view, setView] = useState("login");
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
