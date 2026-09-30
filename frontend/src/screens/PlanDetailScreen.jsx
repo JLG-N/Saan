@@ -2,17 +2,27 @@ import { useState, useEffect } from "react";
 import { api } from "../api/api";
 import { ErrorBanner, StatusBadge, Button } from "../components";
 
+function buildShareUrl(shareToken) {
+  return `${window.location.origin}/p/${shareToken}`;
+}
+
 export function PlanDetailScreen({ planId, token, goTo }) {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [shared, setShared] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");   // set once sharing is on
+  const [shareBusy, setShareBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     api
       .plan(planId, token)
-      .then((data) => { if (!cancelled) setPlan(data.plan); })
+      .then((data) => {
+        if (cancelled) return;
+        setPlan(data.plan);
+        if (data.plan.share_token) setShareUrl(buildShareUrl(data.plan.share_token));
+      })
       .catch((err) => { if (!cancelled) setError(err.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -21,23 +31,78 @@ export function PlanDetailScreen({ planId, token, goTo }) {
   if (loading) return <div className="sn-loading">Loading plan…</div>;
   if (!plan) return <ErrorBanner message={error || "Plan not found."} />;
 
-  const handleShare = () => {
-    setShared(true);
-    setTimeout(() => setShared(false), 1800);
+  const copyLink = async (url) => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // Clipboard API needs https/localhost and a user gesture; fall back to a temp textarea.
+      const ta = document.createElement("textarea");
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      if (!ok) throw new Error("copy failed");
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
+
+  const handleShare = async () => {
+    setError("");
+    setShareBusy(true);
+    try {
+      const { shareToken } = await api.sharePlan(plan.id, token);
+      const url = buildShareUrl(shareToken);
+      setShareUrl(url);
+      try {
+        await copyLink(url);
+      } catch {
+        // Copy blocked -- the link box below is still shown so they can copy it by hand.
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setShareBusy(false);
+    }
+  };
+
+  const handleStopSharing = async () => {
+    setError("");
+    setShareBusy(true);
+    try {
+      await api.unsharePlan(plan.id, token);
+      setShareUrl("");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setShareBusy(false);
+    }
   };
 
   return (
     <div>
       <span className="sn-breadcrumb" onClick={() => goTo("myPlans")}>← My Plans</span>
-      {shared && <div className="sn-box filled" style={{ display: "inline-block", marginBottom: "var(--space-3)", fontWeight: "bold" }}>Link copied!</div>}
+      <ErrorBanner message={error} />
       <div className="sn-row sn-row-tight" style={{ alignItems: "center", marginBottom: "var(--space-4)" }}>
         <div style={{ flex: 3 }}>
           <span className="sn-h1" style={{ display: "inline" }}>{plan.title}</span>{" "}
           <StatusBadge status={plan.status} />
         </div>
-        <div style={{ flex: "none" }}><Button onClick={handleShare}>Share</Button></div>
+        <div style={{ flex: "none" }}><Button onClick={handleShare} disabled={shareBusy}>{shareUrl ? "Copy link" : "Share"}</Button></div>
         <div style={{ flex: "none" }}><Button variant="secondary" onClick={() => goTo("planBuilder", plan.id)}>Edit</Button></div>
       </div>
+
+      {shareUrl && (
+        <div className="sn-box filled" style={{ marginBottom: "var(--space-4)" }}>
+          <span className="sn-label">Anyone with this link can view this plan (read-only)</span>
+          <div className="sn-row sn-row-tight" style={{ alignItems: "center" }}>
+            <input className="sn-input" readOnly value={shareUrl} onFocus={(e) => e.target.select()} />
+            <div style={{ flex: "none" }}><Button variant="secondary" onClick={() => copyLink(shareUrl).catch(() => {})}>{copied ? "Copied!" : "Copy"}</Button></div>
+            <div style={{ flex: "none" }}><Button variant="secondary" onClick={handleStopSharing} disabled={shareBusy}>Stop sharing</Button></div>
+          </div>
+        </div>
+      )}
 
       <div className="sn-layout-2col-rev">
         <div className="sn-placeholder-img" style={{ height: 260 }}>map placeholder</div>
