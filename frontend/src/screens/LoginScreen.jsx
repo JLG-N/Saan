@@ -7,6 +7,7 @@ export function LoginScreen({ onAuth, apiError }) {
   const [email, setEmail] = useState("demo@saan.app");
   const [password, setPassword] = useState("password123");
   const [name, setName] = useState("");
+  const [saveAccount, setSaveAccount] = useState(true);
   const [busy, setBusy] = useState(false);
   const [localError, setLocalError] = useState("");
 
@@ -16,7 +17,7 @@ export function LoginScreen({ onAuth, apiError }) {
     try {
       const result =
         mode === "login" ? await api.login(email, password) : await api.signup(email, password, name || "Player One");
-      onAuth(result.token, result.user);
+      onAuth(result.token, result.user, saveAccount);
     } catch (err) {
       setLocalError(err.message);
     } finally {
@@ -38,6 +39,10 @@ export function LoginScreen({ onAuth, apiError }) {
         )}
         <input className="sn-input" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <input className="sn-input" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--color-ink-soft)", fontSize: "var(--font-sm)", marginBottom: "var(--space-3)" }}>
+          <input type="checkbox" checked={saveAccount} onChange={(e) => setSaveAccount(e.target.checked)} />
+          Save this account
+        </label>
         <Button block onClick={submit} disabled={busy}>
           {busy ? "..." : mode === "login" ? "Sign in" : "Create account"}
         </Button>

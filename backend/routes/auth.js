@@ -78,4 +78,19 @@ router.get("/me", requireAuth, async (req, res, next) => {
   }
 });
 
+// DELETE /api/auth/me — permanently removes the authenticated user's account
+router.delete("/me", requireAuth, async (req, res, next) => {
+  try {
+    const { rows } = await db.query("SELECT id FROM users WHERE id = $1", [req.userId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    await db.query("DELETE FROM users WHERE id = $1", [req.userId]);
+    res.json({ ok: true, message: "Account deleted." });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

@@ -31,6 +31,7 @@ export const api = {
   signup: (email, password, name) => apiFetch("/auth/signup", { method: "POST", body: { email, password, name } }),
   login: (email, password) => apiFetch("/auth/login", { method: "POST", body: { email, password } }),
   me: (token) => apiFetch("/auth/me", { token }),
+  deleteAccount: (token) => apiFetch("/auth/me", { method: "DELETE", token }),
 
   spots: (params = {}) => {
     const qs = new URLSearchParams();

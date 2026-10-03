@@ -22,8 +22,17 @@ CREATE TABLE IF NOT EXISTS spots (
   category    TEXT NOT NULL,
   address     TEXT NOT NULL,
   avg_rating  REAL NOT NULL DEFAULT 0,
-  price_range TEXT NOT NULL
+  price_range TEXT NOT NULL,
+  tagline     TEXT,
+  neighborhood TEXT,
+  tags        TEXT[] DEFAULT '{}',
+  image_url   TEXT
 );
+
+ALTER TABLE spots ADD COLUMN IF NOT EXISTS tagline TEXT;
+ALTER TABLE spots ADD COLUMN IF NOT EXISTS neighborhood TEXT;
+ALTER TABLE spots ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}';
+ALTER TABLE spots ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 CREATE TABLE IF NOT EXISTS plans (
   id         TEXT PRIMARY KEY,

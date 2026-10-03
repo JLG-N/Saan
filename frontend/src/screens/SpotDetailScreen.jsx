@@ -82,15 +82,27 @@ export function SpotDetailScreen({ spotId, token, user, goTo, addToPlan, addBusy
 
   return (
     <div>
-      <span className="sn-breadcrumb" onClick={() => goTo("discover")}>← Back to Discover</span>
+      <span className="sn-breadcrumb" onClick={() => goTo("discover")}>Back to Discover</span>
       <div className="sn-layout-2col-rev" style={{ marginBottom: "var(--space-6)" }}>
-        <div className="sn-placeholder-img" style={{ height: 280 }}>large photo</div>
+        {spot.image_url ? (
+          <img src={spot.image_url} alt={spot.name} style={{ width: "100%", height: 280, objectFit: "cover", borderRadius: 16, display: "block" }} />
+        ) : (
+          <div className="sn-placeholder-img" style={{ height: 280 }}>large photo</div>
+        )}
         <div className="sn-stack">
           <div>
             <div className="sn-h1">{spot.name}</div>
             <RatingStars rating={spot.avg_rating} /> <span className="sn-dim">{Number(spot.avg_rating).toFixed(1)} · {spot.price_range} · {spot.category}</span>
           </div>
-          <div className="sn-box">{spot.address}</div>
+          {spot.tagline && <div className="sn-box filled">{spot.tagline}</div>}
+          <div className="sn-box">{spot.address}{spot.neighborhood ? ` · ${spot.neighborhood}` : ""}</div>
+          {Array.isArray(spot.tags) && spot.tags.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {spot.tags.map((tag) => (
+                <span key={tag} className="sn-tag">{tag}</span>
+              ))}
+            </div>
+          )}
           <Button onClick={openPlanPicker} disabled={addBusy || planLoading}>Add to plan</Button>
           {pickerOpen && (
             <div className="sn-stack">

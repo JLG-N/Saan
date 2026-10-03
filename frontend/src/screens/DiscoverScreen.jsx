@@ -33,12 +33,18 @@ export function DiscoverScreen({ token, user, goTo, openSpot, favorites, toggleF
         style={{ marginBottom: "var(--space-4)", padding: "var(--space-4)", textAlign: "center" }}
       />
       <div className="sn-layout-2col">
-        <div className="sn-sidebar">
+        <div className="sn-sidebar sn-filter-sidebar">
           <div className="sn-label">Filters</div>
           {CATEGORIES.map((c) => (
-            <div key={c} className={`sn-box ${category === c ? "active" : ""}`} onClick={() => setCategory(c)}>
-              {category === c ? "☑" : "☐"} {c}
-            </div>
+            <button
+              key={c}
+              type="button"
+              className={`sn-filter-option ${category === c ? "selected" : ""}`}
+              onClick={() => setCategory(c)}
+              aria-pressed={category === c}
+            >
+              {c}
+            </button>
           ))}
         </div>
         <div>

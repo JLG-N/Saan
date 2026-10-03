@@ -18,8 +18,10 @@ router.get("/", async (req, res, next) => {
     }
     if (q) {
       params.push(`%${q}%`);
-      sql += ` AND name ILIKE $${params.length}`;
+      sql += ` AND (name ILIKE $${params.length} OR address ILIKE $${params.length} OR neighborhood ILIKE $${params.length} OR tagline ILIKE $${params.length})`;
     }
+
+    sql += " ORDER BY avg_rating DESC, name ASC";
 
     const { rows } = await db.query(sql, params);
     res.json({ spots: rows });

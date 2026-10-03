@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { api } from "../api/api";
 import { NavBar, SpotCard, Button } from "../components";
 
-export function ProfileScreen({ user, goTo, onSignOut, favorites, toggleFavorite }) {
+export function ProfileScreen({ user, goTo, onSignOut, onDeleteAccount, saveAccount, onToggleSaveAccount, favorites, toggleFavorite }) {
   const [favSpots, setFavSpots] = useState([]);
   const [section, setSection] = useState("profile");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -19,7 +20,6 @@ export function ProfileScreen({ user, goTo, onSignOut, favorites, toggleFavorite
       <NavBar view="profile" goTo={goTo} user={user} />
       <div className="sn-layout-2col">
         <nav className="sn-sidebar" aria-label="Profile sections">
-          <div className="sn-placeholder-img" style={{ height: 80, marginBottom: "var(--space-2)" }}>avatar</div>
           {[
             { id: "profile", label: "Profile" },
             { id: "saved", label: "Saved spots" },
@@ -37,15 +37,21 @@ export function ProfileScreen({ user, goTo, onSignOut, favorites, toggleFavorite
           ))}
           <Button variant="secondary" block onClick={onSignOut}>Sign out</Button>
         </nav>
-        <section aria-live="polite">
+        <section className="sn-profile-panel" aria-live="polite">
           {section === "profile" && (
-            <>
+            <div className="sn-profile-details">
               <h1 className="sn-h1">Profile</h1>
-              <div className="sn-label" style={{ marginTop: "var(--space-6)" }}>Display name</div>
-              <div className="sn-box" style={{ marginBottom: "var(--space-3)", display: "inline-block" }}>{user?.name}</div>
-              <div className="sn-label">Email</div>
-              <div className="sn-dim">{user?.email}</div>
-            </>
+
+              <div className="sn-profile-field">
+                <div className="sn-label">Display name</div>
+                <div className="sn-value-box">{user?.name}</div>
+              </div>
+
+              <div className="sn-profile-field">
+                <div className="sn-label">Email</div>
+                <div className="sn-value-box muted">{user?.email}</div>
+              </div>
+            </div>
           )}
 
           {section === "saved" && (
@@ -76,6 +82,28 @@ export function ProfileScreen({ user, goTo, onSignOut, favorites, toggleFavorite
               <h2 className="sn-h2" style={{ marginTop: "var(--space-6)" }}>Account details</h2>
               <div className="sn-list-row"><span>Display name</span><span>{user?.name}</span></div>
               <div className="sn-list-row" style={{ marginTop: "var(--space-2)" }}><span>Email</span><span>{user?.email}</span></div>
+
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "var(--space-6)", color: "var(--color-ink-soft)", fontSize: "var(--font-sm)" }}>
+                <input type="checkbox" checked={!!saveAccount} onChange={(e) => onToggleSaveAccount(e.target.checked)} />
+                Save this account
+              </label>
+
+              <div style={{ marginTop: "var(--space-6)" }}>
+                <Button danger block onClick={() => setShowDeleteConfirm(true)}>Delete account</Button>
+              </div>
+
+              {showDeleteConfirm && (
+                <div className="sn-warning-card" style={{ marginTop: "var(--space-4)" }}>
+                  <div className="sn-warning-title">Delete this account?</div>
+                  <div className="sn-warning-copy">
+                    This will permanently remove your account and all saved data. This action cannot be undone.
+                  </div>
+                  <div className="sn-warning-actions">
+                    <Button variant="secondary" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+                    <Button danger onClick={() => { setShowDeleteConfirm(false); onDeleteAccount(); }}>Delete account</Button>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </section>

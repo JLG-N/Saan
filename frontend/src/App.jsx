@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Styles } from "./styles/Styles";
 import { api } from "./api/api";
 import {
@@ -37,6 +37,33 @@ function AppInner() {
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
   const [apiError, setApiError] = useState("");
+  const [saveAccount, setSaveAccount] = useState(() => {
+    try {
+      const raw = localStorage.getItem("saan-save-account");
+      return raw === null ? true : raw === "true";
+    } catch (err) {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("saan-auth");
+      const pref = localStorage.getItem("saan-save-account");
+      if (!raw || pref === "false") {
+        if (pref === "false") localStorage.removeItem("saan-auth");
+        return;
+      }
+      const saved = JSON.parse(raw);
+      if (saved?.token && saved?.user) {
+        setToken(saved.token);
+        setUser(saved.user);
+        setView("discover");
+      }
+    } catch (err) {
+      console.warn("Could not restore saved account:", err);
+    }
+  }, []);
 
   const [selectedSpotId, setSelectedSpotId] = useState(null);
   const [selectedPlanId, setSelectedPlanId] = useState(null);
@@ -50,9 +77,37 @@ function AppInner() {
     setView(v);
   };
 
-  const handleAuth = (tok, u) => {
+  const savePreference = (next) => {
+    try {
+      localStorage.setItem("saan-save-account", String(next));
+    } catch (err) {
+      console.warn("Could not store save preference:", err);
+    }
+  };
+
+  const saveAccountSession = (tok, u) => {
+    try {
+      localStorage.setItem("saan-auth", JSON.stringify({ token: tok, user: u }));
+    } catch (err) {
+      console.warn("Could not persist account:", err);
+    }
+  };
+
+  const clearSavedAccount = () => {
+    try {
+      localStorage.removeItem("saan-auth");
+    } catch (err) {
+      console.warn("Could not clear saved account:", err);
+    }
+  };
+
+  const handleAuth = (tok, u, save = true) => {
     setToken(tok);
     setUser(u);
+    setSaveAccount(save);
+    savePreference(save);
+    if (save) saveAccountSession(tok, u);
+    else clearSavedAccount();
     setView("discover");
   };
 
@@ -60,7 +115,30 @@ function AppInner() {
     setToken(null);
     setUser(null);
     setFavorites([]);
+    if (!saveAccount) clearSavedAccount();
+    else clearSavedAccount();
     setView("login");
+  };
+
+  const handleToggleSaveAccount = (nextValue) => {
+    setSaveAccount(nextValue);
+    savePreference(nextValue);
+    if (nextValue) {
+      if (token && user) saveAccountSession(token, user);
+    } else {
+      clearSavedAccount();
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!token || !user) return;
+
+    try {
+      await api.deleteAccount(token);
+      handleSignOut();
+    } catch (err) {
+      setApiError(err.message);
+    }
   };
 
   const openSpot = (id) => {
@@ -120,7 +198,18 @@ function AppInner() {
   else if (view === "planDetail")
     screen = <PlanDetailScreen planId={selectedPlanId} token={token} goTo={goTo} />;
   else if (view === "profile")
-    screen = <ProfileScreen user={user} goTo={goTo} onSignOut={handleSignOut} favorites={favorites} toggleFavorite={toggleFavorite} />;
+    screen = (
+      <ProfileScreen
+        user={user}
+        goTo={goTo}
+        onSignOut={handleSignOut}
+        onDeleteAccount={handleDeleteAccount}
+        saveAccount={saveAccount}
+        onToggleSaveAccount={handleToggleSaveAccount}
+        favorites={favorites}
+        toggleFavorite={toggleFavorite}
+      />
+    );
 
   return (
     <div className="saan-root">

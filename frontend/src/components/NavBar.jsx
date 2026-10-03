@@ -4,9 +4,7 @@ export function NavBar({ view, goTo, user }) {
     { key: "myPlans", label: "My Plans" },
     { key: "profile", label: "Profile" },
   ];
-  const initials = user?.name
-    ? user.name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("")
-    : "";
+
   return (
     <div className="sn-navbar">
       <div className="logo" onClick={() => goTo("discover")}>Saan</div>
@@ -16,7 +14,6 @@ export function NavBar({ view, goTo, user }) {
             {l.label}
           </span>
         ))}
-        {user && <span className="user" title={user.name}>{initials}</span>}
       </div>
     </div>
   );
