@@ -15,22 +15,37 @@ function publicUser(user) {
   return { id: user.id, email: user.email, name: user.name };
 }
 
+function validateEmail(value) {
+  return typeof value === "string" &&
+    value.length <= 254 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 // POST /api/auth/signup { email, password, name }
 router.post("/signup", async (req, res, next) => {
   try {
-    const { email, password, name } = req.body;
+    const { email: rawEmail, password, name: rawName } = req.body || {};
+    const email = typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
+    const name = typeof rawName === "string" ? rawName.trim() : "";
 
-    if (!email || !password || !name) {
-      return res.status(400).json({ error: "email, password, and name are required." });
+    if (!validateEmail(email)) {
+      return res.status(400).json({ error: "Enter a valid email address." });
+    }
+    if (typeof password !== "string" || Buffer.byteLength(password, "utf8") < 8 ||
+        Buffer.byteLength(password, "utf8") > 72) {
+      return res.status(400).json({ error: "Password must be between 8 and 72 bytes." });
+    }
+    if (!name || name.length > 80) {
+      return res.status(400).json({ error: "Name must be between 1 and 80 characters." });
     }
 
-    const existing = await db.query("SELECT id FROM users WHERE email = $1", [email]);
+    const existing = await db.query("SELECT id FROM users WHERE LOWER(email) = $1", [email]);
     if (existing.rows.length > 0) {
       return res.status(409).json({ error: "An account with that email already exists." });
     }
 
     const id = "user_" + crypto.randomBytes(6).toString("hex");
-    const password_hash = bcrypt.hashSync(password, 10);
+    const password_hash = await bcrypt.hash(password, 10);
 
     await db.query(
       "INSERT INTO users (id, email, password_hash, name) VALUES ($1, $2, $3, $4)",
@@ -48,15 +63,17 @@ router.post("/signup", async (req, res, next) => {
 // POST /api/auth/login { email, password }
 router.post("/login", async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email: rawEmail, password } = req.body || {};
+    const email = typeof rawEmail === "string" ? rawEmail.trim() : "";
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "email and password are required." });
+    if (!validateEmail(email) || typeof password !== "string" ||
+        !password || Buffer.byteLength(password, "utf8") > 72) {
+      return res.status(400).json({ error: "A valid email address and password are required." });
     }
 
-    const { rows } = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+    const { rows } = await db.query("SELECT * FROM users WHERE LOWER(email) = LOWER($1)", [email]);
     const user = rows[0];
-    if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
 

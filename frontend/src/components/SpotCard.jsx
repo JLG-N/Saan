@@ -1,10 +1,11 @@
+import { memo } from "react";
 import { RatingStars } from "./RatingStars";
 
-export function SpotCard({ spot, onClick, favorited, onToggleFavorite }) {
+export const SpotCard = memo(function SpotCard({ spot, onClick, favorited, onToggleFavorite }) {
   const tags = Array.isArray(spot.tags) ? spot.tags.slice(0, 2) : [];
 
   return (
-    <div className="sn-spot-card" onClick={onClick}>
+    <div className="sn-spot-card" onClick={() => onClick?.(spot.id)}>
       <div className="sn-spot-media">
         {spot.image_url ? (
           <img
@@ -47,4 +48,4 @@ export function SpotCard({ spot, onClick, favorited, onToggleFavorite }) {
       )}
     </div>
   );
-}
+});

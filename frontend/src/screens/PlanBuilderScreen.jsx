@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { api } from "../api/api";
 import { ErrorBanner, Button } from "../components";
 
@@ -12,32 +12,49 @@ export function PlanBuilderScreen({ planId, token, goTo }) {
 
   const [availableSpots, setAvailableSpots] = useState([]);
   const [search, setSearch] = useState("");
-
-  const loadPlan = useCallback(() => {
-    setLoading(true);
-    return api
-      .plan(planId, token)
-      .then((data) => { setPlan(data.plan); setTitle(data.plan.title); })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [planId, token]);
-
-  useEffect(() => { loadPlan(); }, [loadPlan]);
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [availableSpotsError, setAvailableSpotsError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError("");
+    setPlan(null);
     api
-      .spots({ q: search })
-      .then((data) => { if (!cancelled) setAvailableSpots(data.spots); })
-      .catch(() => {});
+      .plan(planId, token)
+      .then((data) => {
+        if (cancelled) return;
+        setPlan(data.plan);
+        setTitle(data.plan.title);
+      })
+      .catch((err) => { if (!cancelled) setError(err.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
+  }, [planId, token]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setDebouncedSearch(search.trim()), 250);
+    return () => window.clearTimeout(timeoutId);
   }, [search]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setAvailableSpotsError("");
+    api
+      .spots({ q: debouncedSearch })
+      .then((data) => { if (!cancelled) setAvailableSpots(data.spots); })
+      .catch((err) => { if (!cancelled) setAvailableSpotsError(err.message); });
+    return () => { cancelled = true; };
+  }, [debouncedSearch]);
+
+  const inPlanIds = useMemo(() => new Set((plan?.spots || []).map((spot) => spot.id)), [plan?.spots]);
+  const addableSpots = useMemo(
+    () => availableSpots.filter((spot) => !inPlanIds.has(spot.id)),
+    [availableSpots, inPlanIds]
+  );
 
   if (loading) return <div className="sn-loading">Loading plan…</div>;
   if (!plan) return <ErrorBanner message={error || "Plan not found."} />;
-
-  const inPlanIds = plan.spots.map((s) => s.id);
-  const addableSpots = availableSpots.filter((s) => !inPlanIds.includes(s.id));
 
   const handleTitleBlur = async () => {
     if (title.trim() && title !== plan.title) {
@@ -138,6 +155,7 @@ export function PlanBuilderScreen({ planId, token, goTo }) {
             onChange={(e) => setSearch(e.target.value)}
             style={{ margin: "var(--space-3) 0" }}
           />
+          <ErrorBanner message={availableSpotsError} />
           <div className="sn-stack" style={{ maxHeight: 360, overflowY: "auto" }}>
             {addableSpots.map((s) => (
               <div key={s.id} className="sn-list-row sn-clickable" onClick={() => addSpot(s.id)}>

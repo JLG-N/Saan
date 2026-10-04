@@ -11,13 +11,17 @@ export function PlanDetailScreen({ planId, token, goTo }) {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [shareUrl, setShareUrl] = useState("");   // set once sharing is on
+  const [shareUrl, setShareUrl] = useState("");   
   const [shareBusy, setShareBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [selectedSpotId, setSelectedSpotId] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError("");
+    setPlan(null);
+    setShareUrl("");
     api
       .plan(planId, token)
       .then((data) => {
@@ -38,7 +42,7 @@ export function PlanDetailScreen({ planId, token, goTo }) {
     try {
       await navigator.clipboard.writeText(url);
     } catch {
-      // Clipboard API needs https/localhost and a user gesture; fall back to a temp textarea.
+      
       const ta = document.createElement("textarea");
       ta.value = url;
       document.body.appendChild(ta);
@@ -61,7 +65,7 @@ export function PlanDetailScreen({ planId, token, goTo }) {
       try {
         await copyLink(url);
       } catch {
-        // Copy blocked -- the link box below is still shown so they can copy it by hand.
+        
       }
     } catch (err) {
       setError(err.message);

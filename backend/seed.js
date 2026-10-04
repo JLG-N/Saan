@@ -56,7 +56,7 @@ async function seed() {
     );
   }
 
-  // demo account so the app is runnable immediately: demo@saan.app / password123
+  
   const demoId = "user_demo";
   await db.query(
     "INSERT INTO users (id, email, password_hash, name) VALUES ($1, $2, $3, $4)",

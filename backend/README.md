@@ -10,7 +10,9 @@ A small Express API backed by a Supabase (Postgres) database, matching the schem
 4. **Configure the backend:**
    ```bash
    cp .env.example .env
-   # paste your connection string into DATABASE_URL, set JWT_SECRET to any random string
+   # paste your connection string into DATABASE_URL
+   node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+   # set JWT_SECRET to the generated value; keep it private and stable between restarts
    ```
 5. **Install and run:**
    ```bash

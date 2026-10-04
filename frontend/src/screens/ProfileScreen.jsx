@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "../api/api";
 import { NavBar, SpotCard, Button } from "../components";
 
@@ -6,6 +6,7 @@ export function ProfileScreen({ user, goTo, onSignOut, onDeleteAccount, saveAcco
   const [favSpots, setFavSpots] = useState([]);
   const [section, setSection] = useState("profile");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const openSpot = useCallback((spotId) => goTo("spotDetail", spotId), [goTo]);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,7 +67,7 @@ export function ProfileScreen({ user, goTo, onSignOut, onDeleteAccount, saveAcco
                     <SpotCard
                       key={spot.id}
                       spot={spot}
-                      onClick={() => goTo("spotDetail", spot.id)}
+                      onClick={openSpot}
                       favorited
                       onToggleFavorite={toggleFavorite}
                     />

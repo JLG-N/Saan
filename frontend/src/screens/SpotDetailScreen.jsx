@@ -22,6 +22,9 @@ export function SpotDetailScreen({ spotId, token, user, goTo, addToPlan, addBusy
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError("");
+    setSpot(null);
+    setReviews([]);
     api
       .spot(spotId)
       .then((data) => { if (!cancelled) { setSpot(data.spot); setReviews(data.reviews); } })

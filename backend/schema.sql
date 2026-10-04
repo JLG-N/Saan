@@ -1,12 +1,12 @@
--- Saan schema for Supabase (Postgres).
--- Run this once in the Supabase SQL Editor (or via `psql`) before starting the
--- backend. It mirrors the old SQLite schema in db.js, translated to Postgres.
---
--- Note: RLS is left OFF on purpose. All access still goes through the
--- Express API using the Postgres connection string (service-level access),
--- not through Supabase's client libraries, so Supabase's row-level security
--- doesn't apply here — the Express routes are what enforce who can see or
--- change what.
+
+
+
+
+
+
+
+
+
 
 CREATE TABLE IF NOT EXISTS users (
   id            TEXT PRIMARY KEY,
@@ -63,5 +63,5 @@ CREATE TABLE IF NOT EXISTS reviews (
 );
 
 CREATE INDEX IF NOT EXISTS idx_plans_user_id ON plans(user_id);
-CREATE INDEX IF NOT EXISTS idx_plan_spots_plan_id ON plan_spots(plan_id);
-CREATE INDEX IF NOT EXISTS idx_reviews_spot_id ON reviews(spot_id);
+CREATE INDEX IF NOT EXISTS idx_plan_spots_plan_order ON plan_spots(plan_id, order_index);
+CREATE INDEX IF NOT EXISTS idx_reviews_spot_created ON reviews(spot_id, created_at DESC);

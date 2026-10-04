@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { api } from "../api/api";
 import { CATEGORIES } from "../constants";
 import { NavBar, SpotCard, EmptyState, ErrorBanner } from "../components";
@@ -9,18 +9,25 @@ export function DiscoverScreen({ token, user, goTo, openSpot, favorites, toggleF
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
+  const favoriteIds = useMemo(() => new Set(favorites), [favorites]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setDebouncedQuery(query.trim()), 250);
+    return () => window.clearTimeout(timeoutId);
+  }, [query]);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError("");
     api
-      .spots({ category, q: query })
+      .spots({ category, q: debouncedQuery })
       .then((data) => { if (!cancelled) setSpots(data.spots); })
       .catch((err) => { if (!cancelled) setError(err.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [category, query]);
+  }, [category, debouncedQuery]);
 
   return (
     <div>
@@ -60,8 +67,8 @@ export function DiscoverScreen({ token, user, goTo, openSpot, favorites, toggleF
                   <SpotCard
                     key={s.id}
                     spot={s}
-                    onClick={() => openSpot(s.id)}
-                    favorited={favorites.includes(s.id)}
+                    onClick={openSpot}
+                    favorited={favoriteIds.has(s.id)}
                     onToggleFavorite={toggleFavorite}
                   />
                 ))}

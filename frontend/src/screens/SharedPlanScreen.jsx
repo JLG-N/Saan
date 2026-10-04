@@ -3,7 +3,7 @@ import { api } from "../api/api";
 import { ErrorBanner, RatingStars } from "../components";
 import { PlanMap } from "../components/PlanMap";
 
-// Public, read-only view of a plan someone shared. No login, no token, no edit controls.
+
 export function SharedPlanScreen({ shareToken }) {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,6 +12,9 @@ export function SharedPlanScreen({ shareToken }) {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError("");
+    setPlan(null);
     api
       .sharedPlan(shareToken)
       .then((data) => {

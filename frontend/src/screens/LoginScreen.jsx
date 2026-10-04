@@ -3,7 +3,7 @@ import { api } from "../api/api";
 import { Button, ErrorBanner } from "../components";
 
 export function LoginScreen({ onAuth, apiError }) {
-  const [mode, setMode] = useState("login"); // "login" | "signup"
+  const [mode, setMode] = useState("login"); 
   const [email, setEmail] = useState("demo@saan.app");
   const [password, setPassword] = useState("password123");
   const [name, setName] = useState("");

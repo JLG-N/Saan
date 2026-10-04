@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
-
-const JWT_SECRET = process.env.JWT_SECRET || "saan-dev-secret-change-me";
+const { jwtSecret } = require("../config");
 
 function requireAuth(req, res, next) {
   const header = req.headers.authorization || "";
@@ -11,7 +10,7 @@ function requireAuth(req, res, next) {
   }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    const payload = jwt.verify(token, jwtSecret);
     req.userId = payload.sub;
     next();
   } catch (err) {
@@ -19,4 +18,4 @@ function requireAuth(req, res, next) {
   }
 }
 
-module.exports = { requireAuth, JWT_SECRET };
+module.exports = { requireAuth, JWT_SECRET: jwtSecret };
