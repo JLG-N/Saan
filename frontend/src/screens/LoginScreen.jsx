@@ -4,8 +4,8 @@ import { Button, ErrorBanner } from "../components";
 
 export function LoginScreen({ onAuth, apiError }) {
   const [mode, setMode] = useState("login"); 
-  const [email, setEmail] = useState("demo@saan.app");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [saveAccount, setSaveAccount] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -48,9 +48,6 @@ export function LoginScreen({ onAuth, apiError }) {
         </Button>
         <div className="sn-dim sn-link" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
           {mode === "login" ? "Create an account →" : "← Back to sign in"}
-        </div>
-        <div className="sn-dim" style={{ fontSize: "var(--font-sm)" }}>
-          Demo login is pre-filled: demo@saan.app / password123
         </div>
       </div>
     </div>

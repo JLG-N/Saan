@@ -57,36 +57,7 @@ async function seed() {
   }
 
   
-  const demoId = "user_demo";
-  await db.query(
-    "INSERT INTO users (id, email, password_hash, name) VALUES ($1, $2, $3, $4)",
-    [demoId, "demo@saan.app", bcrypt.hashSync("password123", 10), "Gab"]
-  );
-
-  const demoPlanId = "plan_demo1";
-  await db.query(
-    "INSERT INTO plans (id, title, user_id, status) VALUES ($1, $2, $3, 'ready')",
-    [demoPlanId, "Saturday Coffee Crawl", demoId]
-  );
-
-  const planSpots = [
-    ["ps_demo1", demoPlanId, "spot_001", 0],
-    ["ps_demo2", demoPlanId, "spot_002", 1],
-    ["ps_demo3", demoPlanId, "spot_003", 2],
-  ];
-  for (const [id, planId, spotId, orderIndex] of planSpots) {
-    await db.query(
-      "INSERT INTO plan_spots (id, plan_id, spot_id, order_index) VALUES ($1, $2, $3, $4)",
-      [id, planId, spotId, orderIndex]
-    );
-  }
-
-  await db.query(
-    "INSERT INTO reviews (id, spot_id, user_id, rating, comment) VALUES ($1, $2, $3, $4, $5)",
-    ["rev_demo1", "spot_001", demoId, 5, "Best oat milk latte in town, quiet enough to work."]
-  );
-
-  console.log("Seeded: 30 spots, 1 demo user (demo@saan.app / password123), 1 plan, 1 review.");
+  console.log("Seeded: 30 spots.");
   await db.end();
 }
 

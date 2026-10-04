@@ -21,8 +21,6 @@ A small Express API backed by a Supabase (Postgres) database, matching the schem
    npm start        # starts the API on http://localhost:3001
    ```
 
-**Demo login:** `demo@saan.app` / `password123` — comes pre-loaded with one plan (Saturday Coffee Crawl) so there's something to see immediately.
-
 To reset everything, delete the rows from the Supabase tables (Table Editor, or `TRUNCATE users, spots, plans, plan_spots, reviews CASCADE;` in the SQL Editor) and run `npm run seed` again.
 
 ## How auth works
