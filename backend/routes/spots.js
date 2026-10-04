@@ -75,10 +75,8 @@ router.get("/:id", async (req, res, next) => {
 });
 
 router.post("/:id/reviews", requireAuth, async (req, res, next) => {
+  let client;
   try {
-    const { rows: spotRows } = await db.query("SELECT id FROM spots WHERE id = $1", [req.params.id]);
-    if (!spotRows[0]) return res.status(404).json({ error: "Spot not found." });
-
     const { rating, comment } = req.body;
     if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
       return res.status(400).json({ error: "rating must be a number from 1 to 5." });
@@ -87,28 +85,48 @@ router.post("/:id/reviews", requireAuth, async (req, res, next) => {
       return res.status(400).json({ error: "comment must be a string." });
     }
 
-    const id = "rev_" + crypto.randomBytes(6).toString("hex");
-    const { rows } = await db.query(
-      `WITH inserted_review AS (
-         INSERT INTO reviews (id, spot_id, user_id, rating, comment)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING *
-       )
-       UPDATE spots s
-       SET avg_rating = (
-         SELECT ROUND(AVG(r.rating)::numeric, 1)::real
-         FROM reviews r
-         WHERE r.spot_id = $2
-       )
-       FROM inserted_review
-       WHERE s.id = $2
-       RETURNING inserted_review.*`,
-      [id, req.params.id, req.userId, rating, comment || null]
+    client = await db.connect();
+    await client.query("BEGIN");
+    const { rows: spotRows } = await client.query(
+      "SELECT id FROM spots WHERE id = $1 FOR UPDATE",
+      [req.params.id]
     );
+    if (!spotRows[0]) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Spot not found." });
+    }
+
+    const id = "rev_" + crypto.randomBytes(6).toString("hex");
+    const { rows } = await client.query(
+      `INSERT INTO reviews (id, spot_id, user_id, rating, comment)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [id, req.params.id, req.userId, rating, comment?.trim() || null]
+    );
+    await client.query(
+      `UPDATE spots
+       SET avg_rating = (
+         SELECT ROUND(AVG(rating)::numeric, 1)::real
+         FROM reviews
+         WHERE spot_id = $1
+       )
+       WHERE id = $1`,
+      [req.params.id]
+    );
+    await client.query("COMMIT");
 
     res.status(201).json({ review: rows[0] });
   } catch (err) {
+    if (client) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Review transaction rollback failed:", rollbackError);
+      }
+    }
     next(err);
+  } finally {
+    client?.release();
   }
 });
 
