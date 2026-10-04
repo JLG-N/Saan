@@ -44,7 +44,7 @@ export function Styles() {
 
       --shadow-card: 0 1px 2px rgba(28,27,25,.08), 0 12px 32px rgba(28,27,25,.08);
 
-      background:var(--color-primary);
+      background:linear-gradient(180deg, #faf7ef 0%, #f2ebdc 100%);
       color:var(--color-ink); font-family:var(--font-body); font-size:var(--font-base);
       line-height:1.5; min-height:100vh; width:100%;
     }
