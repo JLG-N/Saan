@@ -157,7 +157,7 @@ function AppInner() {
     );
 
   return (
-    <div className="saan-root">
+    <div className={`saan-root${view === "login" ? " saan-auth-root" : ""}`}>
       <Styles />
       <div className={`sn-shell${view === "login" ? " sn-shell-auth" : ""}`}>{screen}</div>
     </div>

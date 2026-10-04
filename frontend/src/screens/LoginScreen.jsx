@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "../api/api";
 import { Button, ErrorBanner } from "../components";
+import saanLogo from "../../Saan_Logo.jpg";
 
 export function LoginScreen({ onAuth, apiError }) {
   const [mode, setMode] = useState("login"); 
@@ -28,8 +29,11 @@ export function LoginScreen({ onAuth, apiError }) {
   return (
     <div className="sn-split">
       <div className="sn-left">
-        <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "28px" }}>Saan</div>
-        <div style={{ fontSize: "var(--font-sm)", marginTop: "var(--space-3)", opacity: 0.85 }}>find a spot. make a plan. go.</div>
+        <div className="sn-brand-panel">
+          <div className="sn-brand-crop">
+            <img className="sn-brand-mark" src={saanLogo} alt="Saan — find a spot. make a plan. go." />
+          </div>
+        </div>
       </div>
       <div className="sn-right">
         <span className="sn-label">{mode === "login" ? "Sign in" : "Create account"}</span>
@@ -47,7 +51,7 @@ export function LoginScreen({ onAuth, apiError }) {
           {busy ? "..." : mode === "login" ? "Sign in" : "Create account"}
         </Button>
         <div className="sn-dim sn-link" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
-          {mode === "login" ? "Create an account →" : "← Back to sign in"}
+          {mode === "login" ? "Create an account" : "Back to sign in"}
         </div>
       </div>
     </div>

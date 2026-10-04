@@ -44,13 +44,14 @@ export function Styles() {
 
       --shadow-card: 0 1px 2px rgba(28,27,25,.08), 0 12px 32px rgba(28,27,25,.08);
 
-      background:linear-gradient(180deg, #faf7ef 0%, #f2ebdc 100%);
+      background:var(--color-primary);
       color:var(--color-ink); font-family:var(--font-body); font-size:var(--font-base);
       line-height:1.5; min-height:100vh; width:100%;
     }
     .saan-root *{ box-sizing:border-box; }
+    .saan-root.saan-auth-root{ position:fixed; inset:0; width:100vw; min-height:100vh; overflow:auto; }
     .sn-shell{ max-width:1180px; margin:0 auto; padding:var(--space-8) var(--space-6) var(--space-12); }
-    .sn-shell.sn-shell-auth{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:var(--space-6); }
+    .sn-shell.sn-shell-auth{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:var(--space-6); background:var(--color-primary); }
     .sn-shell-auth > .sn-split{ width:min(100%, 860px); }
 
     .sn-h1{ font-family:var(--font-display); font-weight:700; font-size:var(--font-2xl); line-height:1.2; margin:0 0 var(--space-1); }
@@ -190,7 +191,25 @@ export function Styles() {
     }
     .sn-split .sn-left{
       display:flex; flex-direction:column; align-items:center; justify-content:center;
-      background:var(--color-primary); color:#fff; text-align:center; padding:var(--space-6);
+      background:var(--color-bg); color:var(--color-primary-dark); text-align:center;
+      padding:var(--space-6) var(--space-2);
+      border-right:1px solid var(--color-line);
+    }
+    .sn-brand-panel{ display:flex; width:100%; flex-direction:column; align-items:center; justify-content:center; }
+    .sn-brand-crop{ position:relative; width:100%; height:320px; overflow:hidden; }
+    .sn-brand-mark{
+      position:absolute; left:50%; top:50%; width:230%; max-width:none; height:auto;
+      display:block; transform:translate(-50%, -50%);
+    }
+    .sn-brand-wordmark{
+      font-family:var(--font-display); font-weight:700; font-size:clamp(58px, 5.2vw, 104px);
+      line-height:0.88; letter-spacing:-.07em; color:var(--color-primary-dark);
+      margin-top:var(--space-1);
+    }
+    .sn-brand-tagline{
+      font-family:var(--font-display); font-size:clamp(16px, 1.8vw, 28px); font-weight:500;
+      letter-spacing:-.03em; color:var(--color-primary-dark); font-style:italic; opacity:0.9;
+      margin-top:var(--space-1);
     }
     .sn-split .sn-right{ padding:var(--space-12); display:flex; flex-direction:column; gap:var(--space-3); justify-content:center; background:var(--color-surface); }
 
