@@ -8,6 +8,7 @@ export function PlanBuilderScreen({ planId, token, goTo }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [deletingPlan, setDeletingPlan] = useState(false);
 
   const [availableSpots, setAvailableSpots] = useState([]);
   const [search, setSearch] = useState("");
@@ -88,18 +89,44 @@ export function PlanBuilderScreen({ planId, token, goTo }) {
     }
   };
 
+  const deleteCurrentPlan = async () => {
+    if (!window.confirm(`Delete "${plan.title}"? This cannot be undone.`)) return;
+
+    setDeletingPlan(true);
+    try {
+      await api.deletePlan(planId, token);
+      goTo("myPlans");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDeletingPlan(false);
+    }
+  };
+
   return (
     <div>
-      <span className="sn-breadcrumb" onClick={() => goTo("planDetail", planId)}>← Back to plan</span>
+      <span className="sn-breadcrumb" onClick={() => goTo("planDetail", planId)}>Back to plan</span>
       <ErrorBanner message={error} />
-      <span className="sn-label">Plan title</span>
-      <input
-        className="sn-input"
-        style={{ fontWeight: "bold", marginBottom: "var(--space-6)" }}
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onBlur={handleTitleBlur}
-      />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: "var(--space-3)", marginBottom: "var(--space-6)" }}>
+        <div style={{ flex: 1 }}>
+          <span className="sn-label">Plan title</span>
+          <input
+            className="sn-input"
+            style={{ fontWeight: "bold" }}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onBlur={handleTitleBlur}
+          />
+        </div>
+        <Button
+          danger
+          disabled={deletingPlan || busy}
+          onClick={deleteCurrentPlan}
+          style={{ minHeight: "52px", width: "150px", display: "inline-flex", alignItems: "center", justifyContent: "center", paddingTop: "10px", paddingBottom: "10px" }}
+        >
+          {deletingPlan ? "Deleting…" : "Delete plan"}
+        </Button>
+      </div>
 
       <div className="sn-layout-2col-rev">
         <div>
