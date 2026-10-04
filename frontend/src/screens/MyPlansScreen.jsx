@@ -32,9 +32,11 @@ export function MyPlansScreen({ token, user, goTo, viewPlan, startNewPlan }) {
       ) : (
         <div className="sn-stack">
           {plans.map((p) => (
-            <div key={p.id} className="sn-list-row sn-clickable" onClick={() => viewPlan(p.id)}>
-              <span>{p.title} — {p.spots.length} spot{p.spots.length !== 1 ? "s" : ""}</span>
-              <StatusBadge status={p.status} />
+            <div key={p.id} className="sn-list-row sn-plan-row">
+              <button className="sn-plan-open" type="button" onClick={() => viewPlan(p.id)}>
+                <span>{p.title} — {p.spots.length} spot{p.spots.length !== 1 ? "s" : ""}</span>
+                <StatusBadge status={p.status} />
+              </button>
             </div>
           ))}
         </div>

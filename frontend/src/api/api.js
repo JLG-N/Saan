@@ -46,6 +46,7 @@ export const api = {
 
   plans: (token) => apiFetch("/plans", { token }),
   plan: (id, token) => apiFetch(`/plans/${id}`, { token }),
+  deletePlan: (id, token) => apiFetch(`/plans/${id}`, { method: "DELETE", token }),
   createPlan: (title, token) => apiFetch("/plans", { method: "POST", token, body: { title } }),
   updatePlanTitle: (id, title, token) => apiFetch(`/plans/${id}`, { method: "PUT", token, body: { title } }),
   addSpotToPlan: (planId, spotId, token) =>

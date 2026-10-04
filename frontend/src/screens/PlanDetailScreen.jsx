@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../api/api";
 import { ErrorBanner, StatusBadge, Button } from "../components";
+import { PlanMap } from "../components/PlanMap";
 
 function buildShareUrl(shareToken) {
   return `${window.location.origin}/p/${shareToken}`;
@@ -13,6 +14,7 @@ export function PlanDetailScreen({ planId, token, goTo }) {
   const [shareUrl, setShareUrl] = useState("");   // set once sharing is on
   const [shareBusy, setShareBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [selectedSpotId, setSelectedSpotId] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -21,6 +23,7 @@ export function PlanDetailScreen({ planId, token, goTo }) {
       .then((data) => {
         if (cancelled) return;
         setPlan(data.plan);
+        setSelectedSpotId(null);
         if (data.plan.share_token) setShareUrl(buildShareUrl(data.plan.share_token));
       })
       .catch((err) => { if (!cancelled) setError(err.message); })
@@ -82,7 +85,7 @@ export function PlanDetailScreen({ planId, token, goTo }) {
 
   return (
     <div>
-      <span className="sn-breadcrumb" onClick={() => goTo("myPlans")}>← My Plans</span>
+      <span className="sn-breadcrumb" onClick={() => goTo("myPlans")}>My Plans</span>
       <ErrorBanner message={error} />
       <div className="sn-row sn-row-tight" style={{ alignItems: "center", marginBottom: "var(--space-4)" }}>
         <div style={{ flex: 3 }}>
@@ -105,16 +108,22 @@ export function PlanDetailScreen({ planId, token, goTo }) {
       )}
 
       <div className="sn-layout-2col-rev">
-        <div className="sn-placeholder-img" style={{ height: 260 }}>map placeholder</div>
+        <PlanMap spots={plan.spots} selectedSpotId={selectedSpotId} onClearSelection={() => setSelectedSpotId(null)} />
         <div className="sn-stack">
           {plan.spots.length === 0 ? (
             <div className="sn-dim">No spots in this plan yet.</div>
           ) : (
             plan.spots.map((s, i) => (
-              <div key={s.id} className="sn-list-row">
+              <button
+                key={s.id}
+                type="button"
+                className={`sn-list-row sn-map-stop${selectedSpotId === s.id ? " selected" : ""}`}
+                aria-pressed={selectedSpotId === s.id}
+                onClick={() => setSelectedSpotId((currentId) => currentId === s.id ? null : s.id)}
+              >
                 <span>{i + 1} · {s.name}</span>
                 <span className="sn-dim">{s.price_range}</span>
-              </div>
+              </button>
             ))
           )}
         </div>
