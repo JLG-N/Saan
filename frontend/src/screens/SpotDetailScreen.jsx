@@ -27,7 +27,12 @@ export function SpotDetailScreen({ spotId, token, user, goTo, addToPlan, addBusy
     setReviews([]);
     api
       .spot(spotId)
-      .then((data) => { if (!cancelled) { setSpot(data.spot); setReviews(data.reviews); } })
+      .then((data) => {
+        if (!cancelled) {
+          setSpot(data.spot);
+          setReviews(data.spot.reviews || []);
+        }
+      })
       .catch((err) => { if (!cancelled) setError(err.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
