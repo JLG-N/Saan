@@ -49,9 +49,9 @@ export function Styles() {
       line-height:1.5; min-height:100vh; width:100%;
     }
     .saan-root *{ box-sizing:border-box; }
-    .saan-root.saan-auth-root{ position:fixed; inset:0; width:100vw; min-height:100vh; overflow:auto; }
+    .saan-root.saan-auth-root{ position:fixed; inset:0; width:100vw; min-height:100vh; overflow:auto; background:var(--color-primary); }
     .sn-shell{ max-width:1180px; margin:0 auto; padding:var(--space-8) var(--space-6) var(--space-12); }
-    .sn-shell.sn-shell-auth{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:var(--space-6); background:var(--color-primary); }
+    .sn-shell.sn-shell-auth{ width:100%; max-width:none; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:var(--space-6); background:var(--color-primary); }
     .sn-shell-auth > .sn-split{ width:min(100%, 860px); }
 
     .sn-h1{ font-family:var(--font-display); font-weight:700; font-size:var(--font-2xl); line-height:1.2; margin:0 0 var(--space-1); }
