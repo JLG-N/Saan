@@ -1,1 +1,14 @@
-/backend/.env
+# Local environment files
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Installed dependencies and generated builds
+node_modules/
+dist/

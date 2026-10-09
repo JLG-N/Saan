@@ -113,6 +113,8 @@ export const api = {
   spot: (id) => apiFetch(`/spots/${id}`),
   createReview: (spotId, rating, comment, token) =>
     apiFetch(`/spots/${spotId}/reviews`, { method: "POST", token, body: { rating, comment } }),
+  deleteReview: (spotId, reviewId, token) =>
+    apiFetch(`/spots/${spotId}/reviews/${reviewId}`, { method: "DELETE", token }),
 
   plans: (token) => apiFetch("/plans", { token }),
   plan: (id, token) => apiFetch(`/plans/${id}`, { token }),

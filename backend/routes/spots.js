@@ -49,6 +49,7 @@ router.get("/:id", async (req, res, next) => {
                 json_agg(
                   json_build_object(
                     'id', r.id,
+                    'user_id', r.user_id,
                     'rating', r.rating,
                     'comment', r.comment,
                     'created_at', r.created_at,
@@ -83,6 +84,9 @@ router.post("/:id/reviews", requireAuth, async (req, res, next) => {
     }
     if (comment !== undefined && comment !== null && typeof comment !== "string") {
       return res.status(400).json({ error: "comment must be a string." });
+    }
+    if (typeof comment === "string" && comment.length > 500) {
+      return res.status(400).json({ error: "comment must be 500 characters or fewer." });
     }
 
     client = await db.connect();
@@ -122,6 +126,63 @@ router.post("/:id/reviews", requireAuth, async (req, res, next) => {
         await client.query("ROLLBACK");
       } catch (rollbackError) {
         console.error("Review transaction rollback failed:", rollbackError);
+      }
+    }
+    next(err);
+  } finally {
+    client?.release();
+  }
+});
+
+router.delete("/:id/reviews/:reviewId", requireAuth, async (req, res, next) => {
+  let client;
+  try {
+    client = await db.connect();
+    await client.query("BEGIN");
+
+    const { rows: spotRows } = await client.query(
+      "SELECT id FROM spots WHERE id = $1 FOR UPDATE",
+      [req.params.id]
+    );
+    if (!spotRows[0]) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Spot not found." });
+    }
+
+    const { rows: deletedRows } = await client.query(
+      `DELETE FROM reviews
+       WHERE id = $1 AND spot_id = $2 AND user_id = $3
+       RETURNING id`,
+      [req.params.reviewId, req.params.id, req.userId]
+    );
+    if (!deletedRows[0]) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Review not found." });
+    }
+
+    const { rows: updatedSpots } = await client.query(
+      `UPDATE spots
+       SET avg_rating = COALESCE(
+         (
+           SELECT ROUND(AVG(rating)::numeric, 1)::real
+           FROM reviews
+           WHERE spot_id = $1
+         ),
+         0
+       )
+       WHERE id = $1
+       RETURNING avg_rating`,
+      [req.params.id]
+    );
+
+    await client.query("COMMIT");
+    res.json({ reviewId: deletedRows[0].id, avg_rating: updatedSpots[0].avg_rating });
+  } catch (err) {
+    if (client) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Review deletion transaction rollback failed:", rollbackError);
       }
     }
     next(err);

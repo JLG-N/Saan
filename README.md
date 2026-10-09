@@ -30,12 +30,17 @@ cd Saan
 
 ### 3. Configure the environment
 
-Create `backend/.env` (do not commit it) with these values:
+Copy the placeholder file and replace the example values. Keep `.env` private and do not commit it:
 
 ```dotenv
 DATABASE_URL=postgresql://<user>:<password>@<host>:6543/postgres
 JWT_SECRET=<at-least-32-bytes-of-random-data>
 PORT=3001
+CORS_ORIGIN=http://localhost:5173
+```
+
+```bash
+cp backend/.env.example backend/.env
 ```
 
 Replace the database URI placeholders with the URI from your Supabase project. `DATABASE_URL` and `JWT_SECRET` are required. `JWT_SECRET` must contain at least 32 bytes of random data and should remain private and stable between restarts. Generate one locally, for example:
@@ -44,7 +49,7 @@ Replace the database URI placeholders with the URI from your Supabase project. `
 node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 ```
 
-`PORT` is optional and defaults to `3001`; the Vite development proxy also targets port `3001`, so if you change it, update `frontend/vite.config.js` to match.
+`PORT` is optional and defaults to `3001`; the Vite development proxy also targets port `3001`, so if you change it, update `frontend/vite.config.js` to match. `CORS_ORIGIN` is the exact browser origin allowed to call the API. It defaults to `http://localhost:5173` for development and must be set for production.
 
 For a non-local frontend deployment, the optional `VITE_API_BASE` variable sets the backend origin (for example, `https://api.example.com`, with no trailing `/api`). It is not needed for local development: the Vite proxy forwards `/api` requests to `http://localhost:3001`.
 
@@ -54,9 +59,9 @@ Install the backend and frontend dependencies:
 
 ```bash
 cd backend
-npm install
+npm ci
 cd ../frontend
-npm install
+npm ci
 ```
 
 Seed the database:
@@ -93,7 +98,7 @@ Open the local URL printed by Vite, normally [http://localhost:5173](http://loca
 ## 4. Features and usage
 
 1. **Create an account or sign in.** Choose whether to save the session on the device.
-2. **Discover places.** Search by name or location text and filter by category. Open a spot to see its details and reviews; signed-in users can post a star rating and optional comment.
+2. **Discover places.** Search by name or location text and filter by category. Open a spot to see its details and reviews; signed-in users can post a star rating and optional comment, then delete their own review if needed.
 3. **Build an outing.** Add a spot to a new or existing plan. In the plan editor, search for other spots, rename the plan, remove stops, and move stops up or down to set the itinerary order.
 4. **View and share a plan.** A plan detail page shows its ordered stops and a Google Maps route. Share a read-only link with others, or stop sharing to revoke it.
 5. **Manage the account.** Visit Profile to see account details, toggle saved-session behavior, browse spots saved during the current session, sign out, or delete the account.
@@ -112,6 +117,7 @@ All paths below are prefixed with `/api`. Protected endpoints require the JWT re
 | GET | `/spots` | List public spots; optional `category` and `q` filters. |
 | GET | `/spots/:id` | Get spot details and reviews. |
 | POST | `/spots/:id/reviews` | Post a review; authenticated body: `{ "rating": 1-5, "comment": "optional" }`. |
+| DELETE | `/spots/:id/reviews/:reviewId` | Delete your own review; recomputes the spot's average rating. |
 | GET | `/plans` | List the authenticated user's plans and ordered spots. |
 | POST | `/plans` | Create a plan; body: `{ "title": "..." }`. |
 | GET | `/plans/:id` | Get one of the authenticated user's plans. |

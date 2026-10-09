@@ -10,6 +10,7 @@ export function SpotDetailScreen({ spotId, token, user, goTo, addToPlan, addBusy
   const [rating, setRating] = useState("5");
   const [comment, setComment] = useState("");
   const [reviewBusy, setReviewBusy] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState(null);
   const [reviewError, setReviewError] = useState("");
   const [reviewNotice, setReviewNotice] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -88,6 +89,24 @@ export function SpotDetailScreen({ spotId, token, user, goTo, addToPlan, addBusy
     }
   };
 
+  const deleteReview = async (reviewId) => {
+    if (!window.confirm("Delete your review? This cannot be undone.")) return;
+
+    setReviewError("");
+    setReviewNotice("");
+    setDeletingReviewId(reviewId);
+    try {
+      const result = await api.deleteReview(spotId, reviewId, token);
+      setReviews((currentReviews) => currentReviews.filter((review) => review.id !== reviewId));
+      setSpot((currentSpot) => ({ ...currentSpot, avg_rating: result.avg_rating }));
+      setReviewNotice("Review deleted.");
+    } catch (err) {
+      setReviewError(err.message);
+    } finally {
+      setDeletingReviewId(null);
+    }
+  };
+
   return (
     <div>
       <span className="sn-breadcrumb" onClick={() => goTo("discover")}>Back to Discover</span>
@@ -147,7 +166,18 @@ export function SpotDetailScreen({ spotId, token, user, goTo, addToPlan, addBusy
         ) : (
           reviews.map((r) => (
             <div key={r.id} className="sn-box">
-              {r.user_name} — <RatingStars rating={r.rating} /> — "{r.comment}"
+              <div>{r.user_name} — <RatingStars rating={r.rating} /> — "{r.comment}"</div>
+              {r.user_id === user?.id && (
+                <Button
+                  variant="secondary"
+                  danger
+                  disabled={deletingReviewId !== null}
+                  onClick={() => deleteReview(r.id)}
+                  style={{ marginTop: "var(--space-2)" }}
+                >
+                  {deletingReviewId === r.id ? "Deleting…" : "Delete review"}
+                </Button>
+              )}
             </div>
           ))
         )}
