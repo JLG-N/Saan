@@ -168,4 +168,4 @@ All paths below are prefixed with `/api`. Protected endpoints require the JWT re
 - The route map is embedded from Google Maps and spot photos are remote Unsplash URLs, so those visual elements need an internet connection.
 - The repository does not currently define automated test scripts. Add backend route/database tests and frontend interaction tests as a next step.
 
-The repository's [security checklist](SECURITY-CHECKLIST.md) records current findings and items that still need verification before public deployment. The [AI usage log](AI-USAGE.md) describes AI-assisted work and is kept up to date.
+The repository's [security checklist](SECURITY-CHECKLIST.md) records current findings. The [AI usage log](AI-USAGE.md) describes AI-assisted work and is kept up to date.
